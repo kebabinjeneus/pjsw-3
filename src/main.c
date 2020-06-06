@@ -1,49 +1,45 @@
-#define F_CPU 16000000UL
-#include <avr/io.h>
-#include <util/delay.h>
- 
-#define BAUDRATE 9600
-#define BAUD_PRESCALLER (((F_CPU / (BAUDRATE * 16UL))) - 1)
- 
-void USART_init(void);
-unsigned char receive(void);
-void writeChar(unsigned char data);
-void writeString(char* Pstring);
- 
-char String[]="test test test";  
- 
-int main(void){
-    USART_init();                                    //USART initialiseren
- 
-    while(1){        
-        writeString(String);                        //Stuurt string naar terminal
-        _delay_ms(5000);                            //Iedere 5 sec 
-    }    
-     return 0;
-}
- 
-void USART_init(void){
-	// set baud rate
-	UBRR1H = (uint8_t)(BAUD_PRESCALLER>>8);
-	UBRR1L = (uint8_t)(BAUD_PRESCALLER);
-	
-	// enable receiver / transmitter
-	UCSR1B = (1<<RXEN1)|(1<<TXEN1);
+#define F_CPU 16000000
 
-	// set frame format: 8data 2stop bit
-	UCSR1C = (3<<UCSZ10);
+#include <util/delay.h>
+#include <avr/io.h>
+
+#define lmot 16 //digital
+#define rmot 15 //digital
+#define lsp 10  //analog/pwm
+#define rsp 9   //analog/pwm
+
+
+void init() {
+  //Motors LOW is naar voren, HIGH is naar achter
+
+
+  // Timer 1 configuration
+  // prescaler: clockI/O / 1
+  // outputs enabled
+  // phase-correct PWM
+  // top of 400
+  //
+  // PWM frequency calculation
+  // 16MHz / 1 (prescaler) / 2 (phase-correct) / 400 (top) = 20kHz
+
+  DDRB |= (1 << DDB1) | (1 << DDB2) | (1 << DDB5) | (1 << DDB6); //pb1 en pb2 zijn outputs
+
+  PORTB &= ~( (1 << PORTB1) | (1 << PORTB2) | (1 << PORTB5) | (1 << PORTB6));
+
+  TCCR1A = 0b10100000;
+  TCCR1B = 0b00010001;
+  ICR1 = 400;
+  OCR1A = 0;
+  OCR1B = 0;
 }
- 
-void writeChar(unsigned char data){
-     while(!(UCSR1A & (1<<UDRE1))) {
-        UDR1 = data;
-    }
- 
-}
- 
-void writeString(char* Pstring){
-    while(*Pstring != 0x00){
-        writeChar(*Pstring);
-        Pstring++;
-    }
+
+int main() {
+	init();
+  _delay_ms(100);
+  OCR1A = 200;
+  OCR1B = 200;
+
+  PORTB |= (1 << PORTB1) | (1 << PORTB2);
+  
+  _delay_ms(100000);
 }
