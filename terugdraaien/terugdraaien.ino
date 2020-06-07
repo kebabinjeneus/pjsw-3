@@ -1,7 +1,3 @@
-/*
-     testen error-afhandeling
-*/
-
 #define Gyro_adres_SLAW 0b11010110
 #define Gyro_adres_SLAR 0b11010111 // +1 voor leesbit //adres met direction bit (0 voor schrijven & 1 voor lezen)
 #define Accelero_adres_SLAW 0b00111010
@@ -34,6 +30,7 @@ void Error();
 void initGyro(uint8_t G_adresSLAW, uint8_t G_adresSLAR);
 
 
+
 int xg, yg, zg;
 int xa, ya, za;
 int xgOff, ygOff, zgOff;
@@ -41,6 +38,9 @@ int xaOff, yaOff, zaOff;
 int32_t xTotalTurn;
 int32_t yTotalTurn;
 int32_t zTotalTurn;
+
+int moveSpeed = 80;
+
 
 void setup() {
   Serial.begin(9600);
@@ -57,16 +57,88 @@ void setup() {
   DDRC = (1 << PORTC7);
   PORTC = (1 << PORTC7);
   Serial.println("Metingen:");
+
+
+  // Timer 1 configuration
+  // prescaler: clockI/O / 1
+  // outputs enabled
+  // phase-correct PWM
+  // top of 400
+  //
+  // PWM frequency calculation
+  // 16MHz / 1 (prescaler) / 2 (phase-correct) / 400 (top) = 20kHz
+
+  DDRB |= (1 << DDB1) | (1 << DDB2) | (1 << DDB5) | (1 << DDB6); //pb1 en pb2 zijn outputs
+
+  PORTB &= ~( (1 << PORTB1) | (1 << PORTB2) | (1 << PORTB5) | (1 << PORTB6));
+
+  TCCR1A = 0b10100000;
+  TCCR1B = 0b00010001;
+  ICR1 = 400;
+  OCR1A = 0;
+  OCR1B = 0;
+}
+
+// set speed for left motor; speed is a number between -400 and 400
+void setLeftSpeed(int speed) {
+  int reverse = 0;
+  if (speed < 0) {
+    speed = -speed; // make speed a positive quantity
+    reverse = 1;    // preserve the direction
+  }
+  if (speed > 400)  // Max 
+    speed = 400;
+
+  OCR1B = speed;
+
+  if (reverse)
+    PORTB |= (1 << PORTB2);
+  else
+    PORTB &= ~(1 << PORTB2);
+}
+
+// set speed for right motor; speed is a number between -400 and 400
+void setRightSpeed(int speed) {
+  int reverse = 0;
+  if (speed < 0) {
+    speed = -speed;  // Make speed a positive quantity
+    reverse = 1;
+  }
+  
+  if (speed > 400)  // Max PWM dutycycle
+    speed = 400;
+
+  OCR1A = speed;
+
+  if (reverse)
+    PORTB |= (1 << PORTB1);
+  else
+    PORTB &= ~(1 << PORTB1);
+}
+
+// set speed for both motors
+void setSpeeds(int leftSpeed, int rightSpeed)
+{
+  setLeftSpeed(leftSpeed);
+  setRightSpeed(rightSpeed);
 }
 
 void loop() {
-  // Geel signaal LED:
-  //    PORTC = (1<<PORTC7);
-
-  // Gyro meter:
   readGyroVars(Gyro_adres_SLAW, Gyro_adres_SLAR);
-  delay(10);
+  delay(2);
   readAcceleroVars(Accelero_adres_SLAW, Accelero_adres_SLAR);
+  delay(2);
+
+  if(zTotalTurn > 1200) {
+    setSpeeds(moveSpeed, -moveSpeed);  
+  }
+  else if(zTotalTurn < -1200) {
+    setSpeeds(-moveSpeed, moveSpeed);   
+  }
+  else {
+    setSpeeds(0, 0);
+  }
+  
   
   Serial.println("Gyro");
   Serial.print("X: \t"); Serial.print(xg); Serial.print("\t total: "); Serial.println(xTotalTurn);
@@ -79,7 +151,7 @@ void loop() {
   Serial.print("X: \t"); Serial.println(xa);
   Serial.print("Y: \t"); Serial.println(ya);
   Serial.print("Z: \t"); Serial.println(za);
-  delay(100);
+//  delay(100);
 }
 
 uint8_t readGyroVars(uint8_t adresSLAW, uint8_t adresSLAR) {
@@ -287,7 +359,7 @@ void calibr(char sensor) {
   if (sensor == 'G') {
     for (uint16_t i = 0; i < 1024; i++) {
       readGyroVars(Gyro_adres_SLAW, Gyro_adres_SLAR);
-      delay(5);
+      delay(2);
       xTot += xg;
       yTot += yg;
       zTot += zg;
@@ -299,7 +371,7 @@ void calibr(char sensor) {
   else if (sensor == 'A') {
     for (uint16_t i = 0; i < 1024; i++) {
       readAcceleroVars(Accelero_adres_SLAW, Accelero_adres_SLAR);
-      delay(5);
+      delay(2);
       xTot += xa;
       yTot += ya;
       zTot += za;
