@@ -1,12 +1,12 @@
 PORT=/dev/ttyACM0 #verander deze poort naar de geschikte voor je eigen pc
 # Lars: /dev/ttyACM0 
 MCU=atmega32u4
-CFLAGS = -mmcu=$(MCU)   -Wall
+CFLAGS = -mmcu=$(MCU) -Wall
 CC = avr-gcc
-#SRC= main.cpp  zumo.cpp
-SRC= main.c 
+# voeg de c files toe die mee moeten doen met compileren.
+SRC= main.c usart.c 
 OBJ= $(SRC:.c=.o)
-TARGET = zumo
+TARGET = ../bin/zumo
 
 OBJCOPY = avr-objcopy
 FORMAT  = ihex
@@ -34,4 +34,4 @@ clean:
 	rm *.hex
 
 program: $(TARGET).hex
-	avrdude -p $(MCU) -c avr109 -P $(PORT) -U flash:w:$(TARGET).hex
+	avrdude -p $(MCU) -c avr109 -P $(PORT) -U flash:w:$(TARGET).hex -u
