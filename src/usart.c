@@ -46,8 +46,8 @@ void writeChar(char data){
 }
  
 void writeString(char* Pstring){
-    while(*Pstring != 0x00){
-        writeChar(*Pstring);
-        Pstring++;
-    }
+	while(*Pstring != 0x00){
+		writeChar(*Pstring);
+		Pstring++;
+	}
 }
