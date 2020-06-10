@@ -2,30 +2,13 @@
 
 // libraries
 #include <avr/io.h>
+#include <stdlib.h>
 
 // eigen headers
 #include "headers/usart.h"
 
 #define BAUDRATE 9600
 #define BAUD_PRESCALLER (((F_CPU / (BAUDRATE * 16UL))) - 1)
- 
- 
-/*
-void USART_init(void);
-void writeChar(char data);
-void writeString(char* Pstring);
-
-// testcode origineel usart gebruik, main kan met pensioen.
-int main(void){
-    USART_init();                                    //USART initialiseren
- 
-    while(1){        
-        writeString("ik wil dood");                        //Stuurt string naar terminal
-        _delay_ms(100);                            //Iedere 100 milisec 
-    }    
-    return 0;
-}
-*/
  
 void USART_init(){
 	// set baud rate
@@ -50,4 +33,10 @@ void writeString(char* Pstring){
 		writeChar(*Pstring);
 		Pstring++;
 	}
+}
+
+void writeInt(int i) {                            //zet int om naar String
+    char buffer[8];
+    itoa(i,buffer,10);
+    writeString(buffer);
 }
