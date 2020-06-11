@@ -26,7 +26,12 @@ int main() {
 
 	// main loop
 	while(1) {
-		test10cm(0);
+		test10cm(0); // test of de robot 10cm moet rijden
+		
+		//writeInt(getEncoderLeft());
+		//writeString(";");
+		//writeInt(getEncoderRight());
+		//writeString(" | ");
 	}
 
 	return 0;

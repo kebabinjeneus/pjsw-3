@@ -6,7 +6,7 @@
 
 // project include
 #include "headers/encoder.h"
-#include "headers/usart.h"
+#include "headers/motor.h"
 
 static volatile int lastLeftA;
 static volatile int lastRightA;
@@ -28,8 +28,8 @@ ISR(PCINT0_vect) {
 		int channelB = PINE & (1 << PINE2);			//uitlezen pinB
 		int channelA = !(PINB & (1 << PINB4)) != !channelB;	//XOR geeft signaal van channelA
 
-		if (channelA != lastLeftA) {				//als de knop draait															
-			if (channelB == channelA) {				//als B eerst draait, tegen klok in
+		if (channelA != lastLeftA) {				//als de knop draait	
+			if (channelB == channelA) {			//als B eerst draait, tegen klok in
 				leftCounter--;
 			} else {
 				leftCounter++;
@@ -41,18 +41,17 @@ ISR(PCINT0_vect) {
 
 //right interrupt
 ISR(INT6_vect) {
-  int channelB = PINF & (1 << PINF0);					
-  int channelA = !(PINE & (1 << PINE6)) != !channelB;
+	int channelB = PINF & (1 << PINF0);					
+	int channelA = !(PINE & (1 << PINE6)) != !channelB;
 
-  if (channelA != lastRightA) {
-    if (channelB == channelA) {
-      rightCounter--;
-    }
-    else {
-      rightCounter++;
-    }
-  }
-  lastRightA = channelA;
+	if (channelA != lastRightA) {
+		if (channelB == channelA) {
+			rightCounter--;
+		} else {
+			rightCounter++;
+		}
+	}
+	lastRightA = channelA;
 }
 
 void initLeftInterrupt() {
