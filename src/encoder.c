@@ -6,6 +6,7 @@
 
 // project include
 #include "headers/encoder.h"
+#include "headers/usart.h"
 
 static volatile int lastLeftA;
 static volatile int lastRightA;
@@ -21,18 +22,21 @@ static volatile int32_t rightCounter = 0;
 
 //left interrupt
 ISR(PCINT0_vect) {
-  int channelB = PINE & (1 << PINE2);			//uitlezen pinB
-  int channelA = !(PINB & (1 << PINB4)) != !channelB;	//XOR geeft signaal van channelA
+	if(~PINB & (1 << PORTB3)) {
+		test10cm(1);
+	} else {
+		int channelB = PINE & (1 << PINE2);			//uitlezen pinB
+		int channelA = !(PINB & (1 << PINB4)) != !channelB;	//XOR geeft signaal van channelA
 
-  if (channelA != lastLeftA) {				//als de knop draait															
-    if (channelB == channelA) {				//als B eerst draait, tegen klok in
-      leftCounter--;
-    }
-    else {
-      leftCounter++;
-    }
-  }
-  lastLeftA = channelA;									
+		if (channelA != lastLeftA) {				//als de knop draait															
+			if (channelB == channelA) {				//als B eerst draait, tegen klok in
+				leftCounter--;
+			} else {
+				leftCounter++;
+			}
+		}
+		lastLeftA = channelA;									
+	}
 }
 
 //right interrupt

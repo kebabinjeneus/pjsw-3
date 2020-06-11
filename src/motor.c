@@ -5,6 +5,7 @@
 
 // project includes
 #include "headers/motor.h"
+#include "headers/encoder.h"
 
 void MOTOR_init() {
   //Motors LOW is naar voren, HIGH is naar achter
@@ -73,3 +74,25 @@ void setMotorSpeeds(int leftSpeed, int rightSpeed)
   setLeftSpeed(leftSpeed);
   setRightSpeed(rightSpeed);
 }
+
+// laat de zumo 10 cm vooruit rijden
+void rijd10cm() {
+	int start = getEncoderRight();
+	setMotorSpeeds(200, 200);
+	while(getEncoderRight() < (start+504)); // 1:50 = 504 || 1:75 = 742 || 1:100 = 983
+	setMotorSpeeds(0, 0);
+}
+
+// wordt aangeroepen met waarde 1 als knop A door de interrupt wordt gedetecteerd
+// wordt ook standaard aangeroepen door de main loop met waarde 0
+// dit laatste gebeurt om te checken of knop A ingedrukt is.
+void test10cm(int set) {
+	static int flag = 0;
+	if(set) {
+		flag = 1;
+	}else if(flag) {
+		rijd10cm();
+		flag = 0;
+	}
+}
+

@@ -10,16 +10,6 @@
 #include "headers/motor.h"
 #include "headers/encoder.h"
 
-void rijd10cm();
-
-ISR(PCINT3_vect) {
-	writeString("hoi");
-	if(~PINB & (1 << PORTB3)) {
-		rijd10cm();
-	}
-	writeString("werken voor je zakgeld");
-}
-
 int main() {
 	// initialisaties
 	USART_init();
@@ -34,23 +24,11 @@ int main() {
 	PCMSK0 |= 1 << PCINT3;	// ^^
 	sei();
 
-
-	//setMotorSpeeds(50, 0);
-
 	// main loop
 	while(1) {
-		//writeInt(getEncoderLeft());
-		//writeString(" | ");
-		//_delay_ms(100);
+		test10cm(0);
 	}
 
 	return 0;
-}
-
-void rijd10cm() {
-	int start = getEncoderLeft();
-	setMotorSpeeds(400, 400);
-	while(getEncoderLeft() < (start+983));
-	setMotorSpeeds(0, 0);
 }
 
