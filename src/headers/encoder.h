@@ -2,5 +2,7 @@
 #define ENCODER_H
 
 void ENCODER_init();
+int getEncoderRight();
+int getEncoderLeft();
 
 #endif

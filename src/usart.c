@@ -36,7 +36,7 @@ void writeString(char* Pstring){
 }
 
 void writeInt(int i) {                            //zet int om naar String
-    char buffer[8];
-    itoa(i,buffer,10);
-    writeString(buffer);
+	char buffer[8];
+	itoa(i,buffer,10);
+	writeString(buffer);
 }

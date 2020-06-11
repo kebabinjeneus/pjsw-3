@@ -1,8 +1,3 @@
-//PE6 = right encoder xor = int6 interrupt
-//PF0 = right encoder b
-
-//PB4 = left encoder xor = PCint4 interrupt
-//PE2 = left encoder b
 #define F_CPU 16000000UL
 
 // libraries
@@ -18,50 +13,41 @@ static volatile int lastRightA;
 static volatile int32_t leftCounter = 0;
 static volatile int32_t rightCounter = 0;
 
+//PE6 = right encoder xor = int6 interrupt
+//PF0 = right encoder b
+
+//PB4 = left encoder xor = PCint4 interrupt
+//PE2 = left encoder b
+
 //left interrupt
 ISR(PCINT0_vect) {
-  int channelB = PINE & (1 << PINE2);
-  int channelA = (PINB & (1 << PINB4)) ^ channelB;
+  int channelB = PINE & (1 << PINE2);			//uitlezen pinB
+  int channelA = !(PINB & (1 << PINB4)) != !channelB;	//XOR geeft signaal van channelA
 
-  if (channelA != lastLeftA) {
-    if (channelB == channelA) {
-      leftCounter --;
+  if (channelA != lastLeftA) {				//als de knop draait															
+    if (channelB == channelA) {				//als B eerst draait, tegen klok in
+      leftCounter--;
     }
     else {
-      leftCounter ++;
+      leftCounter++;
     }
   }
-  else if (channelB == channelA) {
-    leftCounter ++;
-  }
-  else {
-    leftCounter --;
-  }
-
-  lastLeftA = channelA;
+  lastLeftA = channelA;									
 }
 
 //right interrupt
 ISR(INT6_vect) {
-  int channelB = PINF & (1 << PINF0);
-  int channelA = (PINE & (1 << PINE6)) ^ channelB;
+  int channelB = PINF & (1 << PINF0);					
+  int channelA = !(PINE & (1 << PINE6)) != !channelB;
 
   if (channelA != lastRightA) {
     if (channelB == channelA) {
-      rightCounter --;
+      rightCounter--;
     }
     else {
-      rightCounter ++;
+      rightCounter++;
     }
   }
-  else if (channelB == channelA) {
-    
-    rightCounter ++;
-  }
-  else {
-    rightCounter --;
-  }  
-
   lastRightA = channelA;
 }
 
@@ -71,16 +57,8 @@ void initLeftInterrupt() {
 }
 
 void initRightInterrupt() {
-  EICRB |= (1 << ISC60);
+  EICRB |= (1 << ISC60);				
   EIMSK |= (1 << INT6);
-}
-
-void initLeftVars() {
-  lastLeftA = (PINB & (1 << PINB4)) ^ (PINE & (1 << PINE2));
-}
-
-void initRightVars() {
-  lastRightA = (PINE & (1 << PINE6)) ^ (PINF & (1 << PINF0));
 }
 
 void ENCODER_init() {
@@ -98,6 +76,10 @@ void ENCODER_init() {
   initRightInterrupt();
 
   sei();
-  initLeftVars();
-  initRightVars();
+  lastLeftA = !(PINB & (1 << PINB4)) != !(PINE & (1 << PINE2));
+  lastRightA = !(PINE & (1 << PINE6)) != !(PINF & (1 << PINF0));
 }
+
+int getEncoderLeft() {	return leftCounter; }
+
+int getEncoderRight() {	return rightCounter; }
