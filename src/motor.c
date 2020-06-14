@@ -1,15 +1,13 @@
-#define F_CPU 16000000
+#define F_CPU 16000000UL
 
-#include <util/delay.h>
+// libraries
 #include <avr/io.h>
 
-#define lmot 16 //digital
-#define rmot 15 //digital
-#define lsp 10  //analog/pwm
-#define rsp 9   //analog/pwm
+// project includes
+#include "headers/motor.h"
+#include "headers/encoder.h"
 
-
-void init() {
+void MOTOR_init() {
   //Motors LOW is naar voren, HIGH is naar achter
 
 
@@ -33,13 +31,68 @@ void init() {
   OCR1B = 0;
 }
 
-int main() {
-	init();
-  _delay_ms(100);
-  OCR1A = 200;
-  OCR1B = 200;
+// set speed for left motor; speed is a number between -400 and 400
+void setLeftSpeed(int speed) {
+  int reverse = 0;
+  if (speed < 0) {
+    speed = -speed; // make speed a positive quantity
+    reverse = 1;    // preserve the direction
+  }
+  if (speed > 400)  // Max PWM dutycycle
+    speed = 400;
 
-  PORTB |= (1 << PORTB1) | (1 << PORTB2);
-  
-  _delay_ms(100000);
+  OCR1B = speed;
+
+  if (reverse)
+    PORTB |= (1 << PORTB2);
+  else
+    PORTB &= ~(1 << PORTB2);
 }
+
+// set speed for right motor; speed is a number between -400 and 400
+void setRightSpeed(int speed) {
+  int reverse = 0;
+  if (speed < 0) {
+    speed = -speed;  // Make speed a positive quantity
+    reverse = 1;
+  }
+  
+  if (speed > 400)  // Max PWM dutycycle
+    speed = 400;
+
+  OCR1A = speed;
+
+  if (reverse)
+    PORTB |= (1 << PORTB1);
+  else
+    PORTB &= ~(1 << PORTB1);
+}
+
+// set speed for both motors
+void setMotorSpeeds(int leftSpeed, int rightSpeed)
+{
+  setLeftSpeed(leftSpeed);
+  setRightSpeed(rightSpeed);
+}
+
+// laat de zumo 10 cm vooruit rijden
+void rijd10cm() {
+	int start = getEncoderRight();
+	setMotorSpeeds(200, 200);
+	while(getEncoderRight() < (start+504)); // 1:50 = 504 || 1:75 = 742 || 1:100 = 983
+	setMotorSpeeds(0, 0);
+}
+
+// wordt aangeroepen met waarde 1 als knop A door de interrupt wordt gedetecteerd
+// wordt ook standaard aangeroepen door de main loop met waarde 0
+// dit laatste gebeurt om te checken of knop A ingedrukt is.
+void test10cm(int set) {
+	static int flag = 0;
+	if(set) {
+		flag = 1;
+	}else if(flag) {
+		rijd10cm();
+		flag = 0;
+	}
+}
+
