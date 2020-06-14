@@ -3,12 +3,20 @@
 // libraries
 #include <avr/io.h>
 #include <stdlib.h>
+#include <avr/interrupt.h>
 
 // eigen headers
 #include "headers/usart.h"
 
 #define BAUDRATE 9600
 #define BAUD_PRESCALLER (((F_CPU / (BAUDRATE * 16UL))) - 1)
+
+
+ISR(USART1_RX_vect) {
+	int henk = 5;
+	henk = UDR1;
+	UDR1 = henk;
+}
  
 void USART_init(){
 	// set baud rate
@@ -16,7 +24,7 @@ void USART_init(){
 	UBRR1L = (unsigned char)(BAUD_PRESCALLER);
 	
 	// enable receiver / transmitter
-	UCSR1B = (1<<RXEN1) | (1<<TXEN1);
+	UCSR1B = (1<<RXEN1) | (1<<TXEN1) | (1<<RXCIE1);
 
 	// set frame format: 8data 2stop bit
 	//UCSR1C = (1<<USBS1) | (3<<UCSZ10);	// geen idee of dit beter is
