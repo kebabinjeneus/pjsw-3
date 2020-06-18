@@ -28,14 +28,20 @@ ISR(PCINT0_vect) {
 		int channelB = PINE & (1 << PINE2);			//uitlezen pinB
 		int channelA = !(PINB & (1 << PINB4)) != !channelB;	//XOR geeft signaal van channelA
 
-		if (channelA != lastLeftA) {				//als de knop draait	
-			if (channelB == channelA) {			//als B eerst draait, tegen klok in
-				leftCounter--;
+		if (channelA != lastLeftA) {
+			if (channelB == channelA) {
+				leftCounter --;
 			} else {
-				leftCounter++;
+				leftCounter ++;
 			}
+		} else if (channelB == channelA) {
+			leftCounter ++;
+		} else {
+			leftCounter --;
 		}
-		lastLeftA = channelA;									
+
+		lastLeftA = channelA;
+
 	}
 }
 
@@ -86,3 +92,8 @@ void ENCODER_init() {
 int getEncoderLeft() {	return leftCounter; }
 
 int getEncoderRight() {	return rightCounter; }
+
+void resetEncoderValues() { 
+	leftCounter = 0; 
+	rightCounter = 0; 
+}

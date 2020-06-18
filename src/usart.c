@@ -8,13 +8,12 @@
 // eigen headers
 #include "headers/usart.h"
 #include "headers/motor.h"
+#include "headers/encoder.h"
 
 #define BAUDRATE 9600
 #define BAUD_PRESCALLER (((F_CPU / (BAUDRATE * 16UL))) - 1)
 
-int input = 0;
-
-void motorenAanzetten();
+int input = -1;
 
 ISR(USART1_RX_vect){
     char henk = UDR1;
@@ -24,9 +23,11 @@ ISR(USART1_RX_vect){
             break;
         case 'w':
             input = 1;
+	    resetEncoderValues();
             break;
         case 's':
             input = 2;
+	    resetEncoderValues();
             break;
         case 'a':
             input = 3;
@@ -34,53 +35,26 @@ ISR(USART1_RX_vect){
         case 'd':
             input = 4;
             break;
-    }
+    }	
 }
 
 void motorenAanzetten() {
 	switch(input) {
+		case -1: break;
 		case 0: setMotorSpeeds(0, 0);
+			input = -1;
 			break;
-		case 1: setMotorSpeeds(100, 100);
+		case 1: setMotorCorrectie(100, 100);
 			break;
-		case 2: setMotorSpeeds(-100, -100);
+		case 2: setMotorCorrectie(-100, -100);
 			break;
-		case 3: setMotorSpeeds(-50, 50);
+		case 3: setMotorSpeeds(-100, 100);
 			break;
-		case 4: setMotorSpeeds(50, -50);
+		case 4: setMotorSpeeds(100, -100);
+			break;
 	}
 }
 
-/*ISR(USART1_RX_vect) {
-
-	char henk = UDR1;
-	switch(henk) {
-		case 'q': 
-			  setMotorSpeeds(0, 0);
-			  UDR1 = henk;
-			  break;
-		case 'w':
-			  setMotorSpeeds(100, 100);
-			  UDR1 = henk;
-			  break;
-		case 'a': 
-			  setMotorSpeeds(-50, 50);
-			  UDR1 = henk;
-			  break;
-		case 's': 
-			  setMotorSpeeds(-100, -100);
-			  UDR1 = henk;
-			  break;
-		case 'd': 
-			  setMotorSpeeds(50, -50);
-			  UDR1 = henk;
-			  break;
-		default:
-			  DDRC = 0b00000010;
-			  PORTC = (1<<PORTC7);
-	}
-}*/
- 
 void USART_init(){
 	// set baud rate
 	UBRR1H = (unsigned char)(BAUD_PRESCALLER>>8);
