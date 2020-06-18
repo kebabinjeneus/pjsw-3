@@ -2,6 +2,7 @@
 
 // libraries
 #include <avr/io.h>
+#include <util/delay.h>
 
 // project includes
 #include "headers/motor.h"
@@ -77,9 +78,10 @@ void setMotorSpeeds(int leftSpeed, int rightSpeed)
 
 // laat de zumo 10 cm vooruit rijden
 void rijd10cm() {
+	_delay_ms(100);
 	int start = getEncoderRight();
 	setMotorSpeeds(200, 200);
-	while(getEncoderRight() < (start+504)); // 1:50 = 504 || 1:75 = 742 || 1:100 = 983
+	while(getEncoderRight() < (start+492)); // 1:100 = 492
 	setMotorSpeeds(0, 0);
 }
 
