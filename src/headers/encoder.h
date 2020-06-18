@@ -4,5 +4,6 @@
 void ENCODER_init();
 int getEncoderRight();
 int getEncoderLeft();
+void resetEncoderValues();
 
 #endif

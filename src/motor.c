@@ -7,6 +7,11 @@
 // project includes
 #include "headers/motor.h"
 #include "headers/encoder.h"
+#include "headers/usart.h"
+
+// paar definities enzo
+#define pgv 1                // Proportional gain value
+#define straightfactor 0.9975         // Adjust this to correct for minor curve.  Should be in the 0.9 to 1.1 range
 
 void MOTOR_init() {
   //Motors LOW is naar voren, HIGH is naar achter
@@ -79,9 +84,12 @@ void setMotorSpeeds(int leftSpeed, int rightSpeed)
 // laat de zumo 10 cm vooruit rijden
 void rijd10cm() {
 	_delay_ms(100);
+	//writeString(
 	int start = getEncoderRight();
+	//writeInt(start);
 	setMotorSpeeds(200, 200);
 	while(getEncoderRight() < (start+492)); // 1:100 = 492
+	//writeInt(getEncoderRight());
 	setMotorSpeeds(0, 0);
 }
 
@@ -92,9 +100,20 @@ void test10cm(int set) {
 	static int flag = 0;
 	if(set) {
 		flag = 1;
-	}else if(flag) {
+	} else if(flag) {
 		rijd10cm();
 		flag = 0;
 	}
 }
 
+// immer geradeaus funktion
+void setMotorCorrectie(int snelheidL, int snelheidR) {
+	int correctie, afwijking; // correctie factor = pgv * afwijking 
+
+	int aantalL = getEncoderLeft();
+	int aantalR = getEncoderRight();
+	afwijking = aantalL - straightfactor * aantalR;
+	correctie = pgv * afwijking;
+	snelheidR += correctie;
+	setMotorSpeeds(snelheidL, snelheidR);
+}
