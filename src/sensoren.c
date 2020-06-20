@@ -1,4 +1,4 @@
-#define F_CPU 16000000
+#define F_CPU 16000000UL
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -24,6 +24,7 @@ uint8_t TWI_statusCodeCheck(uint8_t st);
 void calibrate();
 
 #include "headers/usart.h"
+#include "headers/motor.h"
 
 void TWI_init() {
 	TWSR = (0<<TWPS1) | (0<<TWPS0);
@@ -198,11 +199,36 @@ void readGyroValues() {
 void printGyroValues() {
 	readGyroValues();
 	_delay_ms(10);
-	writeString("Gyro:\n");
-	writeString("X:"); writeInt(x); writeString("X totaal:"); writeInt(xTotalTurn);
-	writeString("Y:"); writeInt(y); writeString("Y totaal:"); writeInt(yTotalTurn);
-	writeString("Z:"); writeInt(z); writeString("Z totaal:"); writeInt(zTotalTurn);
-	writeString("\n");
+	writeString("Gyro:");
+//	writeString("\n\rX:"); writeInt(x); writeString("\tX totaal:"); writeInt(xTotalTurn);
+//	writeString("\n\rY:"); writeInt(y); writeString("\tY totaal:"); writeInt(yTotalTurn);
+	writeString("\n\rZ:"); writeInt(z); writeString("\tZ totaal:"); writeInt(zTotalTurn);
+	writeString("\n\r");
 }
 
+void gyro() {
+	//initGyro(Gyro_adres_SLAW, Gyro_adres_SLAR);
+	//writeString("draai de robot nu\n\r1s");
+	//_delay_ms(1000);
+	//writeString("\r2s");
+	//_delay_ms(1000);
+	//writeString("\r1s");
+	//_delay_ms(1000);
+	//writeString("draait terug. . .");
+	while(1) {
+		readGyroVars(Gyro_adres_SLAW, Gyro_adres_SLAR);
+		_delay_ms(2);
+  
+		int moveSpeed = 80;
+		if(zTotalTurn > 1200) {
+			setMotorSpeeds(moveSpeed, -moveSpeed);  
+		} else if(zTotalTurn < -1200) {
+			setMotorSpeeds(-moveSpeed, moveSpeed);   
+		} else {
+			setMotorSpeeds(0, 0);
+			break;
+		}
+	}
+}
+  
 int32_t getZTotalTurn() { return zTotalTurn; }

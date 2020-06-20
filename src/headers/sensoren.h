@@ -18,5 +18,7 @@ uint8_t readGyroVars(uint8_t adresSLAW, uint8_t adresSLAR);
 int32_t getZTotalTurn();
 void printGyroValues();
 void readGyroValues();
+void TWI_init();
+void gyro();
 
 #endif

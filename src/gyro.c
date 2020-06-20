@@ -5,7 +5,6 @@
 
 #include "headers/motor.h"
 #include "headers/sensoren.h"
-//#include "headers/usart.h"
 
 #define Gyro_adres_SLAW 0b11010110
 #define Gyro_adres_SLAR 0b11010111 // +1 voor leesbit //adres met direction bit (0 voor schrijven & 1 voor lezen)

@@ -9,6 +9,7 @@
 #include "headers/usart.h"
 #include "headers/motor.h"
 #include "headers/encoder.h"
+#include "headers/sensoren.h"
 
 #define BAUDRATE 9600
 #define BAUD_PRESCALLER (((F_CPU / (BAUDRATE * 16UL))) - 1)
@@ -35,8 +36,13 @@ ISR(USART1_RX_vect){
         case 'd':
             input = 4;
             break;
+	case 'p':
+	    input = 5;
+	    break;
+	case 'g':
+	    input = 6;
+	    break;
     }	
-    UDR1 = henk;
 }
 
 void motorenAanzetten() {
@@ -52,6 +58,13 @@ void motorenAanzetten() {
 		case 3: setMotorSpeeds(-100, 100);
 			break;
 		case 4: setMotorSpeeds(100, -100);
+			break;
+		case 5: setMotorSpeeds(0, 0);
+			printGyroValues();
+			input = -1;
+			break;
+		case 6:
+			gyro();
 			break;
 	}
 }
@@ -85,4 +98,4 @@ void writeInt(int i) {                            //zet int om naar String
 	char buffer[8];
 	itoa(i,buffer,10);
 	writeString(buffer);
-}
+} 
