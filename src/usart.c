@@ -36,6 +36,7 @@ ISR(USART1_RX_vect){
             input = 4;
             break;
     }	
+    UDR1 = henk;
 }
 
 void motorenAanzetten() {

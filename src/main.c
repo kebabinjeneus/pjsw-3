@@ -9,7 +9,7 @@
 #include "headers/usart.h"
 #include "headers/motor.h"
 #include "headers/encoder.h"
-//#include "headers/sensoren.h"
+#include "headers/sensoren.h"
 //void SENSOREN_init();
 //void sensor_update();
 #include "headers/uphill.h"
@@ -20,8 +20,7 @@ int main() {
 	USART_init();
 	MOTOR_init();
 	ENCODER_init();
-	//SENSOREN_init();
-	//writeString("Ready to play!");
+	//initGyro(0b11010110, 0b11010111);
 	
 	// init knopjes
 	// A & C
@@ -38,17 +37,8 @@ int main() {
 	while(1) {
 		test10cm(0); // test of de robot 10cm moet rijden	
 		motorenAanzetten(); // test of motoren aanmoeten volgens toetsenbord
-		/*sensor_update();
-		if(~PIND & (1 << PORTD5)) {
-			//sensor_update();
-			//writeString("KNOP B\t");
-			uphill();
-		}*/
-		/*if(~PINB & (1 << PORTB0)) {
-			//writeString("KNOP C\t");
-			//sensor_update();
-			gyro();
-		}*/
+		//printGyroValues();
+		//readGyroValues();
 	}
 
 	return 0;
