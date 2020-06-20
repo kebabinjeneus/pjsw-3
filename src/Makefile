@@ -4,7 +4,7 @@ MCU=atmega32u4
 CFLAGS = -mmcu=$(MCU) -Wall
 CC = avr-gcc
 # voeg de c files toe die mee moeten doen met compileren.
-SRC= main.c usart.c motor.c encoder.c 
+SRC= main.c #usart.c motor.c encoder.c 
 OBJ= $(SRC:.c=.o)
 TARGET = ../bin/zumo
 
