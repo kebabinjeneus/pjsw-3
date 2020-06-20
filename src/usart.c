@@ -35,8 +35,17 @@ ISR(USART1_RX_vect){
         case 'd':
             input = 4;
             break;
+	case 'p':
+	    input = 5;
+	    break;
+	case 'g':
+	    input = 6;
+	    break;
     }	
 }
+
+void printGyroValues();
+void gyro();
 
 void motorenAanzetten() {
 	switch(input) {
@@ -51,6 +60,13 @@ void motorenAanzetten() {
 		case 3: setMotorSpeeds(-100, 100);
 			break;
 		case 4: setMotorSpeeds(100, -100);
+			break;
+		case 5: setMotorSpeeds(0, 0);
+			//printGyroValues();
+			input = -1;
+			break;
+		case 6:
+//			gyro();
 			break;
 	}
 }

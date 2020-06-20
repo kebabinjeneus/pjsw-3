@@ -1,10 +1,10 @@
-PORT=/dev/ttyACM0 #verander deze poort naar de geschikte voor je eigen pc
+PORT=/dev/ttyACM1 #verander deze poort naar de geschikte voor je eigen pc
 # Lars: /dev/ttyACM0 
 MCU=atmega32u4
 CFLAGS = -mmcu=$(MCU) -Wall
 CC = avr-gcc
 # voeg de c files toe die mee moeten doen met compileren.
-SRC= main.c #usart.c motor.c encoder.c 
+SRC= main.c motor.c encoder.c usart.c  
 OBJ= $(SRC:.c=.o)
 TARGET = ../bin/zumo
 
