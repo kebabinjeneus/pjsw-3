@@ -28,7 +28,6 @@ void calibrate();
 
 void TWI_init() {
 	TWSR = (0<<TWPS1) | (0<<TWPS0);
-	//TWBR = ((160000000 / 400000) - 16) / (2 * 1);
 	TWBR = ((F_CPU / 400000) - 16) / (2 * 1);
 	TWCR = (1<<TWEN);
 }
@@ -166,9 +165,7 @@ void initGyro(uint8_t G_adresSLAW, uint8_t G_adresSLAR){
 
 uint8_t TWI_statusCodeCheck(uint8_t st) {
 	if(TWI_GetStatus() != st){
-		//Serial.print(st + " Fout! \t"); Serial.print("TWSR: \t"); Serial.print(TWSR); Serial.println();
 		writeString("Fout!");
-		//writeInt(TWSR);
 		Error();
 		return ERROR;
 	} else	return 1;
@@ -206,14 +203,6 @@ void printGyroValues() {
 }
 
 void gyro() {
-	//initGyro(Gyro_adres_SLAW, Gyro_adres_SLAR);
-	//writeString("draai de robot nu\n\r1s");
-	//_delay_ms(1000);
-	//writeString("\r2s");
-	//_delay_ms(1000);
-	//writeString("\r1s");
-	//_delay_ms(1000);
-	//writeString("draait terug. . .");
 	while(1) {
 		readGyroVars(Gyro_adres_SLAW, Gyro_adres_SLAR);
 		_delay_ms(2);
@@ -229,5 +218,3 @@ void gyro() {
 		}
 	}
 }
-  
-int32_t getZTotalTurn() { return zTotalTurn; }

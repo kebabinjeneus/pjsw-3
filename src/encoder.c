@@ -20,21 +20,27 @@ static volatile int32_t rightCounter = 0;
 //PB4 = left encoder xor = PCint4 interrupt
 //PE2 = left encoder b
 
-//left interrupt
+//linker interrupt & knop A interrupt
 ISR(PCINT0_vect) {
+	// check of knop A is ingedrukt of dat het de encoder is
 	if(~PINB & (1 << PORTB3)) {
+		// set flag zodat bij volgende main loop iteratie rijd10cm uitgevoerd wordt.
 		test10cm(1);
-	} else {
-		int channelB = PINE & (1 << PINE2);			//uitlezen pinB
+	}
+	
+	// niet knop A dus encoder interrupt:
+	else {
+		int channelB = PINE & (1 << PINE2);			//uitlezen pine2
 		int channelA = !(PINB & (1 << PINB4)) != !channelB;	//XOR geeft signaal van channelA
 
+		// logica voor het uitlezen van de encoder
 		if (channelA != lastLeftA) {
 			if (channelB == channelA) {
 				leftCounter --;
 			} else {
 				leftCounter ++;
 			}
-		} else if (channelB == channelA) {
+		} else if (channelB == channelA) { // we snappen nog niet helemaal de reden dat dit nodig is voor de linker encoder.
 			leftCounter ++;
 		} else {
 			leftCounter --;
@@ -45,11 +51,12 @@ ISR(PCINT0_vect) {
 	}
 }
 
-//right interrupt
+//rechter interrupt
 ISR(INT6_vect) {
-	int channelB = PINF & (1 << PINF0);					
-	int channelA = !(PINE & (1 << PINE6)) != !channelB;
+	int channelB = PINF & (1 << PINF0);				// uitlezen pinf0
+	int channelA = !(PINE & (1 << PINE6)) != !channelB;		// xor geeft signaal van channelA
 
+	// logica voor het uitlezen van de encoder
 	if (channelA != lastRightA) {
 		if (channelB == channelA) {
 			rightCounter--;
@@ -81,18 +88,27 @@ void ENCODER_init() {
   PORTE |= (1 << PORTE2) | (1 << PORTE6);
   PORTF |= (1 << PORTF0);
 
+  // initialiseer interrupts
   initLeftInterrupt();
   initRightInterrupt();
 
   sei();
+
+  // lees initiele encoder waardes uit:
   lastLeftA = !(PINB & (1 << PINB4)) != !(PINE & (1 << PINE2));
   lastRightA = !(PINE & (1 << PINE6)) != !(PINF & (1 << PINF0));
 }
 
+// De volgende twee functies heten get, maar zijn niet cpp code
+// deze naam komt uit de gewoonte om java te schrijven
+//
+// Het enige dat deze functies doen is de globale variabele van dit bestand doorgeven
+// dit komt doordat het doorgeven van globale variabelen naar andere bestanden niet echt wilde lukken.
 int getEncoderLeft() {	return leftCounter; }
 
 int getEncoderRight() {	return rightCounter; }
 
+// stelt de encoder tellers in op 0
 void resetEncoderValues() { 
 	leftCounter = 0; 
 	rightCounter = 0; 
