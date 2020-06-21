@@ -1,4 +1,4 @@
-PORT=/dev/ttyACM0 #verander deze poort naar de geschikte voor je eigen pc
+PORT=/dev/ttyACM1 #verander deze poort naar de geschikte voor je eigen pc
 # Lars: /dev/ttyACM0 
 MCU=atmega32u4
 CFLAGS = -mmcu=$(MCU) -Wall

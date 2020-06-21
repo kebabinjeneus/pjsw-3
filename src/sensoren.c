@@ -116,6 +116,10 @@ uint8_t readGyroVars(uint8_t adresSLAW, uint8_t adresSLAR){
 	y -= yOff;
 	z -= zOff;
 
+	xTotalTurn += x;
+	yTotalTurn += y;
+	zTotalTurn += z;
+	
 	return SUCCES;
 }
 
@@ -190,18 +194,13 @@ void calibrate() {
 	yOff = yTot / 1024;
 	zOff = zTot / 1024;
 }
-void readGyroValues() {	
-	readGyroVars(Gyro_adres_SLAW, Gyro_adres_SLAR);
-	xTotalTurn += x;
-	yTotalTurn += y;
-	zTotalTurn += z;
-}
+
 void printGyroValues() {
-	readGyroValues();
+	readGyroVars(Gyro_adres_SLAW, Gyro_adres_SLAR);
 	_delay_ms(10);
 	writeString("Gyro:");
-//	writeString("\n\rX:"); writeInt(x); writeString("\tX totaal:"); writeInt(xTotalTurn);
-//	writeString("\n\rY:"); writeInt(y); writeString("\tY totaal:"); writeInt(yTotalTurn);
+	writeString("\n\rX:"); writeInt(x); writeString("\tX totaal:"); writeInt(xTotalTurn);
+	writeString("\n\rY:"); writeInt(y); writeString("\tY totaal:"); writeInt(yTotalTurn);
 	writeString("\n\rZ:"); writeInt(z); writeString("\tZ totaal:"); writeInt(zTotalTurn);
 	writeString("\n\r");
 }
@@ -220,9 +219,9 @@ void gyro() {
 		_delay_ms(2);
   
 		int moveSpeed = 80;
-		if(zTotalTurn > 1200) {
+		if(zTotalTurn > 2500) {
 			setMotorSpeeds(moveSpeed, -moveSpeed);  
-		} else if(zTotalTurn < -1200) {
+		} else if(zTotalTurn < -2500) {
 			setMotorSpeeds(-moveSpeed, moveSpeed);   
 		} else {
 			setMotorSpeeds(0, 0);

@@ -17,8 +17,8 @@
 int input = -1;
 
 ISR(USART1_RX_vect){
-    char henk = UDR1;
-    switch(henk){
+//    char henk = UDR1;
+    switch(UDR1){
         case 'q':
             input = 0;
             break;
