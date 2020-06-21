@@ -3,9 +3,12 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <stdlib.h>
+#include "headers/usart.h"
+#include "headers/motor.h"
 
 #define Gyro_adres_SLAW 0b11010110
-#define Gyro_adres_SLAR 0b11010111 // +1 voor leesbit //adres met direction bit (0 voor schrijven & 1 voor lezen)
+/* +1 voor leesbit adres met direction bit (0 voor schrijven & 1 voor lezen) */
+#define Gyro_adres_SLAR 0b11010111 
 #define G_CTRL1 0b0100000
 #define G_CTRL2 0b0100001
 #define G_CTRL3 0b0100010
@@ -23,8 +26,6 @@ int32_t zTotalTurn = 0;
 uint8_t TWI_statusCodeCheck(uint8_t st);
 void calibrate();
 
-#include "headers/usart.h"
-#include "headers/motor.h"
 
 void TWI_init() {
 	TWSR = (0<<TWPS1) | (0<<TWPS0);
@@ -62,32 +63,49 @@ uint8_t TWI_readNACK(){
 	return TWDR;
 }
 
+/*
+Print de status code uit van de TWI communicatie.
+*/
 uint8_t TWI_GetStatus(){
 	uint8_t status;
 	status = TWSR & 0xF8;
 	return status;
 }
 
+/*
+Het uitlezen van de Gyro registers: xl, xh, yl, yh, zl en zh .
+i2c communicatie wordt hier gebruikt.
+uint8_t adresSLAW : read adres
+uint8_t adresSLAR : write adres
+0b10101000 : registers adres (incrementeel)
+*/
 uint8_t readGyroVars(uint8_t adresSLAW, uint8_t adresSLAR){
 	uint8_t xl, xh, yl, yh, zl, zh;
 	TWI_init();
 
+	/* Begin de communicatie. */
 	TWI_start();
+	/* Een START-conditie is verzonden. */
 	TWI_statusCodeCheck(0x08);
 
 	TWI_write(adresSLAW);
+	/* SLA + W is verzonden; ACK is ontvangen. */
 	TWI_statusCodeCheck(0x18);
 
-	TWI_write(0b10101000);		//wat is dit adres? --> adres van register waarin x y z staan
+	TWI_write(0b10101000);
+	/* Gegevensbyte is verzonden; ACK is ontvangen. */
 	TWI_statusCodeCheck(0x28);
 
 	TWI_start();
+	/* Een herhaalde START-conditie is verzonden. */
 	TWI_statusCodeCheck(0x10);
 
 	TWI_write(adresSLAR);
+	/* SLA + R is verzonden; ACK is ontvangen. */
 	TWI_statusCodeCheck(0x40);
 
 	xl = TWI_readACK();
+	/* Gegevensbyte is ontvangen; ACK is geretourneerd. */
 	TWI_statusCodeCheck(0x50);
 
 	xh = TWI_readACK();
@@ -103,18 +121,23 @@ uint8_t readGyroVars(uint8_t adresSLAW, uint8_t adresSLAR){
 	TWI_statusCodeCheck(0x50);
 
 	zh = TWI_readNACK();
+	/* Geen gegevensbyte is ontvangen; geen ACK is geretourneerd. */
 	TWI_statusCodeCheck(0x58);
-
+	/* Stop de communicatie. */
 	TWI_stop();
 
+/* Comineer de hoge en lage waarden samen. */
 	x = (int16_t)(xh << 8 | xl);
 	y = (int16_t)(yh << 8 | yl);
 	z = (int16_t)(zh << 8 | zl);
 
+
+/* Trek de waardes af met de gekalibreerde waarde. */
 	x -= xOff;
 	y -= yOff;
 	z -= zOff;
 
+/* Totaal rotaties van de assen. */
 	xTotalTurn += x;
 	yTotalTurn += y;
 	zTotalTurn += z;
@@ -122,27 +145,45 @@ uint8_t readGyroVars(uint8_t adresSLAW, uint8_t adresSLAR){
 	return SUCCES;
 }
 
+/*
+Het schrijven van data in de i2c communicatie.
+uint16_t adresSLAW : write adres
+uint16_t adres_register : register adres
+uint8_t data : data die wordt geschreven
+*/
 void write(uint16_t adresSLAW, uint8_t adres_register, uint8_t data){
 	TWI_init();
 
+	/* Begin de communicatie. */
 	TWI_start();
+	/* Een START-conditie is verzonden. */
 	TWI_statusCodeCheck(0x08);
 
 	TWI_write(adresSLAW);
+	/* SLA + W is verzonden; ACK is ontvangen. */
 	TWI_statusCodeCheck(0x18);
 
 	TWI_write(adres_register);
+	/* Gegevensbyte is verzonden; ACK is ontvangen. */
 	TWI_statusCodeCheck(0x28);
 
 	TWI_write(data);
+	/* Gegevensbyte is verzonden; ACK is ontvangen. */
 	TWI_statusCodeCheck(0x28);
 
+	/* Stop de communicatie. */
 	TWI_stop();
 }
 
+/*
+Gyro klaar maken met de juiste registers en juiste waarden.
+uint8_t G_adresSLAW : write adres
+uint8_t G_adresSLAR : read adres
+*/
 void initGyro(uint8_t G_adresSLAW, uint8_t G_adresSLAR){
 	uint8_t CTRL1_adres = G_CTRL1;
-	uint8_t waarde_CTRL1 = 0x6F;      //CTRL1 = (1<<DR1)|(1<<BW1)|(1<<BW0)|(1<<PD)|(!<<Zen)|(1<<Yen)|(1<<Xen);
+	/* CTRL1 = (1<<DR1)|(1<<BW1)|(1<<BW0)|(1<<PD)|(!<<Zen)|(1<<Yen)|(1<<Xen); */
+	uint8_t waarde_CTRL1 = 0x6F;      
 	write(G_adresSLAW, CTRL1_adres, waarde_CTRL1);
 	_delay_ms(10);
 	uint8_t CTRL2_adres = G_CTRL2;
@@ -154,6 +195,7 @@ void initGyro(uint8_t G_adresSLAW, uint8_t G_adresSLAR){
 	write(G_adresSLAW, CTRL3_adres, waarde_CTRL3);
 	_delay_ms(10);
 	uint8_t CTRL4_adres = G_CTRL4;
+	/* CTRL1 = (1<<FS1) */
 	uint8_t waarde_CTRL4 = 0x20;
 	write(G_adresSLAW, CTRL4_adres, waarde_CTRL4);
 	_delay_ms(10);
@@ -163,6 +205,11 @@ void initGyro(uint8_t G_adresSLAW, uint8_t G_adresSLAR){
 	calibrate();
 }
 
+/*
+Check als de status code niet correct is,
+dan gooit het een ERROR.
+Als niet dan is het een SUCCES.
+*/
 uint8_t TWI_statusCodeCheck(uint8_t st) {
 	if(TWI_GetStatus() != st){
 		writeString("Fout!");
@@ -171,6 +218,9 @@ uint8_t TWI_statusCodeCheck(uint8_t st) {
 	} else	return 1;
 }
 
+/*
+Kalibreer de gyro waarden, zodat er geen wijkingen komen.
+*/
 void calibrate() {
 	int32_t xTot = 0;
 	int32_t yTot = 0;
@@ -178,20 +228,24 @@ void calibrate() {
 
 	for (uint16_t i = 0; i < 1024; i++)
 	{
-		// Wait for new data to be available, then read it.
+		/* Wacht tot er nieuwe gegevens beschikbaar zijn en lees ze. */
 		readGyroVars(Gyro_adres_SLAW, Gyro_adres_SLAR);
 		_delay_ms(5);
 
-		// Add the Z axis reading to the total.
+		/* Voeg de uitlezing van de 3 assen toe aan het totaal. */
 		xTot += x;
 		yTot += y;
 		zTot += z;
 	}
+	/* Bereken de gemiddelde van de totale waarden. */
 	xOff = xTot / 1024;
 	yOff = yTot / 1024;
 	zOff = zTot / 1024;
 }
 
+/* 
+Print de waardes van de 3 assen en de totale rotaties in USART. 
+*/
 void printGyroValues() {
 	readGyroVars(Gyro_adres_SLAW, Gyro_adres_SLAR);
 	_delay_ms(10);
@@ -202,6 +256,9 @@ void printGyroValues() {
 	writeString("\n\r");
 }
 
+/*
+De robot draait terug naar zijn begin positie.
+*/
 void gyro() {
 	while(1) {
 		readGyroVars(Gyro_adres_SLAW, Gyro_adres_SLAR);
@@ -209,10 +266,13 @@ void gyro() {
   
 		int moveSpeed = 80;
 		if(zTotalTurn > 2500) {
+			/* Draai naar rechts. */
 			setMotorSpeeds(moveSpeed, -moveSpeed);  
 		} else if(zTotalTurn < -2500) {
+			/* Draai naar links. */
 			setMotorSpeeds(-moveSpeed, moveSpeed);   
 		} else {
+			/* Sta stil. */
 			setMotorSpeeds(0, 0);
 			break;
 		}
