@@ -17,7 +17,6 @@
 int input = -1;
 
 ISR(USART1_RX_vect){
-//    char henk = UDR1;
     switch(UDR1){
         case 'q':
             input = 0;
@@ -36,16 +35,19 @@ ISR(USART1_RX_vect){
         case 'd':
             input = 4;
             break;
-	case 'p':
+	case 'g':
 	    input = 5;
 	    break;
-	case 'g':
+	case 'u':
 	    input = 6;
+	    break;
+	case 'p':
+	    input = 99;
 	    break;
     }	
 }
 
-void motorenAanzetten() {
+void checkInput() {
 	switch(input) {
 		case -1: break;
 		case 0: setMotorSpeeds(0, 0);
@@ -59,12 +61,16 @@ void motorenAanzetten() {
 			break;
 		case 4: setMotorSpeeds(100, -100);
 			break;
-		case 5: setMotorSpeeds(0, 0);
-			printGyroValues();
-			input = -1;
+		case 5:
+			gyro();
 			break;
 		case 6:
-			gyro();
+			faceUphill();
+			break;
+		case 99:
+			printAcceleroValues();
+			//printGyroValues();
+			input = -1;
 			break;
 	}
 }
