@@ -37,7 +37,8 @@ void MOTOR_init() {
   OCR1B = 0;
 }
 
-// set speed for left motor; speed is a number between -400 and 400
+// stel snelheid voor linker motor in
+// speed is een nummer tussen -400 en 400
 void setLeftSpeed(int speed) {
   int reverse = 0;
   if (speed < 0) {
@@ -55,7 +56,8 @@ void setLeftSpeed(int speed) {
     PORTB &= ~(1 << PORTB2);
 }
 
-// set speed for right motor; speed is a number between -400 and 400
+// stel snelheid voor rechter motor in
+// speed is een nummer tussen -400 en 400
 void setRightSpeed(int speed) {
   int reverse = 0;
   if (speed < 0) {
@@ -74,7 +76,7 @@ void setRightSpeed(int speed) {
     PORTB &= ~(1 << PORTB1);
 }
 
-// set speed for both motors
+// stel de snelheid in voor beide motoren
 void setMotorSpeeds(int leftSpeed, int rightSpeed)
 {
   setLeftSpeed(leftSpeed);
