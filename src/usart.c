@@ -91,7 +91,7 @@ void writeChar(char data) {
 }
  
 // stuurt string per character naar writeChar
-void writeString(char* Pstring)i {
+void writeString(char* Pstring) {
 	while(*Pstring != 0x00){
 		writeChar(*Pstring);
 		Pstring++;
