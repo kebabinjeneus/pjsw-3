@@ -5,6 +5,6 @@ void USART_init();
 void writeChar(char data);
 void writeString(char* Pstring);
 void writeInt(int i);
-void motorenAanzetten();
+void checkInput();
 
 #endif

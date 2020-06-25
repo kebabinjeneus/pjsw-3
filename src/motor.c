@@ -11,7 +11,7 @@
 
 // paar definities enzo
 #define pgv 1                // Proportional gain value
-#define straightfactor 0.9975         // Adjust this to correct for minor curve.  Should be in the 0.9 to 1.1 range
+#define straightfactor 0.9975         // pas deze waarde aan om de robot recht te doen rijden.
 
 void MOTOR_init() {
   //Motors LOW is naar voren, HIGH is naar achter
@@ -37,44 +37,46 @@ void MOTOR_init() {
   OCR1B = 0;
 }
 
-// set speed for left motor; speed is a number between -400 and 400
+// stel snelheid voor linker motor in
+// speed is een nummer tussen -400 en 400
 void setLeftSpeed(int speed) {
   int reverse = 0;
   if (speed < 0) {
-    speed = -speed; // make speed a positive quantity
-    reverse = 1;    // preserve the direction
+    speed = -speed;	// maak snelheid positief
+    reverse = 1;	// behoud richting
   }
-  if (speed > 400)  // Max PWM dutycycle
+  if (speed > 400)	// Max PWM dutycycle
     speed = 400;
 
-  OCR1B = speed;
+  OCR1B = speed;	// stel snelheid in
 
-  if (reverse)
+  if (reverse)		// stel richting in
     PORTB |= (1 << PORTB2);
   else
     PORTB &= ~(1 << PORTB2);
 }
 
-// set speed for right motor; speed is a number between -400 and 400
+// stel snelheid voor rechter motor in
+// speed is een nummer tussen -400 en 400
 void setRightSpeed(int speed) {
   int reverse = 0;
   if (speed < 0) {
-    speed = -speed;  // Make speed a positive quantity
-    reverse = 1;
+    speed = -speed;	// Maak snelheid positief
+    reverse = 1;	// behoud richting
   }
   
-  if (speed > 400)  // Max PWM dutycycle
+  if (speed > 400)	// Max PWM dutycycle
     speed = 400;
 
-  OCR1A = speed;
+  OCR1A = speed;	// stel snelheid in
 
-  if (reverse)
+  if (reverse)		// stel richting in
     PORTB |= (1 << PORTB1);
   else
     PORTB &= ~(1 << PORTB1);
 }
 
-// set speed for both motors
+// stel de snelheid in voor beide motoren
 void setMotorSpeeds(int leftSpeed, int rightSpeed)
 {
   setLeftSpeed(leftSpeed);
@@ -83,14 +85,12 @@ void setMotorSpeeds(int leftSpeed, int rightSpeed)
 
 // laat de zumo 10 cm vooruit rijden
 void rijd10cm() {
-	_delay_ms(100);
-	//writeString(
-	int start = getEncoderRight();
-	//writeInt(start);
-	setMotorSpeeds(200, 200);
-	while(getEncoderRight() < (start+492)); // 1:100 = 492
-	//writeInt(getEncoderRight());
-	setMotorSpeeds(0, 0);
+	_delay_ms(200); // tijd om het knopje los te laten voor de robot wegrijd
+	int start = getEncoderRight(); // startwaarde encoder
+	setMotorSpeeds(200, 200); // vooruit rijden
+	// wacht zolang de encoder niet de waarde voor 10cm bereikt heeft
+	while(getEncoderRight() < (start+492));
+	setMotorSpeeds(0, 0); // zet motoren uit.
 }
 
 // wordt aangeroepen met waarde 1 als knop A door de interrupt wordt gedetecteerd
@@ -106,12 +106,15 @@ void test10cm(int set) {
 	}
 }
 
-// immer geradeaus funktion
+// functie om in een rechte lijn te rijden.
 void setMotorCorrectie(int snelheidL, int snelheidR) {
 	int correctie, afwijking; // correctie factor = pgv * afwijking 
 
+	// encoderwaardes inlezen
 	int aantalL = getEncoderLeft();
 	int aantalR = getEncoderRight();
+
+	// logica om motorsnelheden aan te passen op afwijking in encoders.
 	afwijking = aantalL - straightfactor * aantalR;
 	correctie = pgv * afwijking;
 	snelheidR += correctie;
